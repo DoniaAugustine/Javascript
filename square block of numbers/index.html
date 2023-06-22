@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Number Puzzle Game</title>
+    <style>
+        .game-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 10px;
+            width: 300px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .game-cell {
+            width: 70px;
+            height: 70px;
+            background-color: #eee;
+            border-radius: 5px;
+            line-height: 70px;
+            font-size: 24px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container"></div>
+    <div class="controls">
+        <button onclick="startGame()">Start Game</button>
+        <label for="count">Number of Clicks:</label>
+        <input type="number" id="count" min="1" max="20">
+    </div>
+    <div id="timer">Timer: 0 seconds</div>
+
+    <script>
+        var board;
+        var moves;
+        var countInput = document.getElementById('count');
+        var count = 0;
+        var timerElement = document.getElementById('timer');
+        var timerInterval;
+
+        // Function to update the timer
+        function updateTimer(seconds) {
+            timerElement.textContent = 'Timer: ' + seconds + ' seconds';
+        }
+
+        // Function to start the timer
+        function startTimer() {
+            var seconds = 0;
+            updateTimer(seconds);
+
+            timerInterval = setInterval(function() {
+                seconds++;
+                updateTimer(seconds);
+            }, 1000);
+        }
+
+        // Function to stop the timer
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        // Function to create a new game board
+        function createBoard() {
+            var numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, null]
+            numbers.sort(() => Math.random() - 0.5);
+
+            return numbers;
+        }
+
+        // Function to check if the game is complete
+        function isGameComplete(board) {
+            for (var i = 0; i < 15; i++) {
+                if (board[i] !== i + 1) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Function to swap two values on the game board
+        function swapValues(board, index1, index2) {
+            [board[index1], board[index2]] = [board[index2], board[index1]];
+            count++;
+            countInput.value = count;
+        }
+
+        // Function to handle the cell click event
+        function handleCellClick(index) {
+            if (!board[index]) {
+                return; // Ignore clicks on the empty space
+            }
+
+            var row = Math.floor(index / 4);
+            var col = index % 4;
+
+            if (row > 0 && !board[index - 4]) {
+                swapValues(board, index, index - 4); // Move up
+            } else if (row < 3 && !board[index + 4]) {
+                swapValues(board, index, index + 4); // Move down
+            } else if (col > 0 && !board[index - 1]) {
+                swapValues(board, index, index - 1); // Move left
+            } else if (col < 3 && !board[index + 1]) {
+                swapValues(board, index, index + 1); // Move right
+            } else {
+                return; // Ignore invalid moves
+            }
+
+            renderBoard();
+
+            if (isGameComplete(board)) {
+                stopTimer(); // Stop the timer when the game is complete
+                alert("Congratulations! You completed the game.");
+                resetGame();
+            } else if (moves >= 20) {
+                stopTimer(); // Stop the timer when the maximum number of moves is reached
+                alert("Game Over! You have reached the maximum number of swaps.");
+                resetGame();
+            } else {
+                moves++;
+            }
+        }
+
+        // Function to render the game board
+        function renderBoard() {
+            var container = document.querySelector('.game-container');
+            container.innerHTML = '';
+
+            for (var i = 0; i < 16; i++) {
+                var cell = document.createElement('div');
+                cell.className = 'game-cell';
+                cell.textContent = board[i] || '';
+                cell.addEventListener('click', handleCellClick.bind(null, i));
+                container.appendChild(cell);
+            }
+        }
+
+        // Function to start the game
+        function startGame() {
+            moves = 0;
+            count = 0;
+            countInput.value = count;
+            countInput.disabled = true;
+            board = createBoard();
+            renderBoard();
+            startTimer(); // Start the timer when the game starts
+        }
+
+        // Function to reset the game
+        function resetGame() {
+            countInput.disabled = false;
+            countInput.value = '';
+            board = [];
+            moves = 0;
+            renderBoard();
+            stopTimer(); // Stop the timer when the game resets
+        }
+
+        // Initialize the game
+        resetGame();
+    </script>
+</body>
+</html>
